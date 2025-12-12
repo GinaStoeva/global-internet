@@ -1,35 +1,88 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <title>Global Internet Data</title>
 
-  <!-- Globe + Three -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
+  <!-- THREE.js + Globe.gl CDN -->
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
 
-  <!-- PapaParse -->
+  <!-- PapaParse CSV loader -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    body { background:#000; color:white; font-family:system-ui; margin:0; }
-    #globe { height: 600px; }
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: white;
+      font-family: "Inter", sans-serif;
+      overflow: hidden;
+    }
+
+    #controls {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.55);
+      padding: 15px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    select, input {
+      margin-top: 6px;
+      width: 220px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+
+    #log-box {
+      position: fixed;
+      right: 20px;
+      top: 20px;
+      width: 260px;
+      height: 300px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.45);
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      backdrop-filter: blur(6px);
+    }
+
+    #globe-container {
+      width: 100vw;
+      height: 100vh;
+    }
   </style>
 </head>
+
 <body>
 
-<h1 style="padding:20px;">Global Internet Data</h1>
+  <div id="controls">
+    <h2 style="margin:0 0 10px 0;">Global Internet Data</h2>
 
-<input type="file" id="csv-upload">
-<select id="year-select"></select>
-<select id="region-select"><option value="All">All Regions</option></select>
+    <label>Upload CSV:</label><br>
+    <input type="file" id="csv-upload"><br><br>
 
-<ul id="logs"></ul>
+    <label>Year:</label><br>
+    <select id="year-select"></select><br><br>
 
-<div id="globe"></div>
+    <label>Region:</label><br>
+    <select id="region-select"></select>
+  </div>
 
-<script src="script.js"></script>
+  <div id="log-box">
+    <strong>Logs</strong>
+    <ul id="logs"></ul>
+  </div>
 
+  <div id="globe-container"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
 

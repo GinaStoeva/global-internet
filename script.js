@@ -10,22 +10,22 @@ const regionSelect = document.getElementById("region-select");
 const logsEl = document.getElementById("logs");
 const globeEl = document.getElementById("globe");
 
-// populate year select
+// Populate year dropdown
 years.forEach(y => yearSelect.innerHTML += `<option value="${y}">${y}</option>`);
 
-// logging
+// Logging
 function log(msg){
   const li = document.createElement("li");
   li.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
   logsEl.prepend(li);
 }
 
-// load CSV
+// Load CSV data
 function loadCSV(str){
   const parsed = Papa.parse(str.trim(), {header:true, dynamicTyping:true}).data;
   rawData = parsed;
 
-  // fill region dropdown
+  // Fill region dropdown
   const regions = new Set();
   rawData.forEach(r=>{ if(r.region) regions.add(r.region); });
   regions.forEach(r => regionSelect.innerHTML += `<option value="${r}">${r}</option>`);
@@ -34,23 +34,24 @@ function loadCSV(str){
   log("CSV loaded");
 }
 
-// update globe points
+// Update globe points
 function updateGlobePoints(){
   if(!rawData.length) return;
   globePoints = rawData
-    .filter(r => r[`year ${currentYear}`]!=null && (currentRegion==="All" || r.region===currentRegion))
+    .filter(r => r[`year ${currentYear}`] != null && (currentRegion==="All" || r.region===currentRegion))
     .map((r,i)=>({
-      lat: r.lat || Math.random()*140-70,
-      lon: r.lon || Math.random()*360-180,
+      lat: r.lat || Math.random()*140-70, // fallback if lat missing
+      lon: r.lon || Math.random()*360-180, // fallback if lon missing
       value: r[`year ${currentYear}`],
       country: r.country
     }));
   if(globeObj) globeObj.pointsData(globePoints);
 }
 
-// initialize globe
+// Initialize globe
 const globeObj = Globe()
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
   .pointLat(d=>d.lat)
   .pointLng(d=>d.lon)
   .pointColor(d=>`hsl(${200 - d.value*2},80%,60%)`)
@@ -59,12 +60,14 @@ const globeObj = Globe()
   .pointsData(globePoints)
   .onPointClick(d=>{
     selectedCountry=d.country;
-    log(`Clicked ${d.country}`);
+    log(`Clicked ${d.country} - Value: ${d.value}`);
   });
 
 globeEl.appendChild(globeObj.renderer().domElement);
+globeObj.controls().autoRotate = true;
+globeObj.controls().autoRotateSpeed = 0.6;
 
-// events
+// Event listeners
 yearSelect.addEventListener("change", e=>{
   currentYear = e.target.value;
   updateGlobePoints();
@@ -85,7 +88,7 @@ document.getElementById("csv-upload").addEventListener("change", e=>{
   reader.readAsText(file);
 });
 
-// default CSV load
+// Default CSV load from file in repo
 fetch("data.csv")
   .then(res=>res.text())
   .then(text=>loadCSV(text));

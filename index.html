@@ -1,44 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Internet Data</title>
+let rawData = [];
+let globePoints = [];
+let selectedCountry = null;
+let currentYear = "2024";
+let currentRegion = "All";
 
-<!-- Tailwind for quick UI -->
-<script src="https://cdn.tailwindcss.com"></script>
+const years = ["2017","2018","2019","2020","2021","2022","2023","2024"];
+const yearSelect = document.getElementById("year-select");
+const regionSelect = document.getElementById("region-select");
+const logsEl = document.getElementById("logs");
+const globeEl = document.getElementById("globe");
 
-<!-- Three.js + Globe.gl -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
+// Populate year dropdown
+years.forEach(y => yearSelect.innerHTML += `<option value="${y}">${y}</option>`);
 
-<!-- PapaParse for CSV parsing -->
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+// Logging function
+function log(msg){
+  const li = document.createElement("li");
+  li.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logsEl.prepend(li);
+}
 
-<style>
-  body { margin:0; background:#111; color:white; font-family:sans-serif; }
-  #globe { width:100%; height:600px; border-radius:12px; margin-bottom:2rem; }
-  select,input { background:#222; color:white; padding:0.4rem; border-radius:6px; }
-  #logs { max-height:150px; overflow:auto; font-size:0.85rem; color:#aaa; margin-top:1rem; }
-</style>
-</head>
-<body>
+// Load CSV
+function loadCSV(str){
+  const parsed = Papa.parse(str.trim(), {header:true, dynamicTyping:true}).data;
+  rawData = parsed;
 
-<div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-4 text-center text-cyan-400">Global Internet Data</h1>
+  // Fill region dropdown
+  const regions = new Set();
+  rawData.forEach(r => { if(r.region) regions.add(r.region); });
+  regions.forEach(r => regionSelect.innerHTML += `<option value="${r}">${r}</option>`);
 
-  <div class="flex gap-4 mb-4">
-    <input type="file" id="csv-upload" />
-    <select id="year-select"></select>
-    <select id="region-select"><option value="All">All Regions</option></select>
-  </div>
+  updateGlobePoints();
+  log("CSV loaded");
+}
 
-  <div id="globe"></div>
+// Update globe points
+function updateGlobePoints(){
+  if(!rawData.length) return;
+  globePoints = rawData
+    .filter(r => r[`year ${currentYear}`] != null && (currentRegion==="All" || r.region===currentRegion))
+    .map(r => ({
+      lat: r.lat || Math.random()*140-70,
+      lon: r.lon || Math.random()*360-180,
+      value: r[`year ${currentYear}`],
+      country: r.country
+    }));
+  if(globeObj) globeObj.pointsData(globePoints);
+}
 
-  <h2 class="mt-4">Logs</h2>
-  <ul id="logs"></ul>
-</div>
+// Initialize globe
+const globeObj = Globe()
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+  .pointLat(d => d.lat)
+  .pointLng(d => d.lon)
+  .pointColor(d => `hsl(${200 - d.value*2},80%,60%)`)
+  .pointAltitude(d => 0.01 + d.value/100)
+  .pointRadius(0.5)
+  .pointsData(globePoints)
+  .onPointClick(d => {
+    selectedCountry = d.country;
+    log(`Clicked ${d.country} - Value: ${d.value}`);
+  });
 
-<script src="script.js"></script>
-</body>
-</html>
+globeEl.appendChild(globeObj.renderer().domElement);
+globeObj.controls().autoRotate = true;
+globeObj.controls().autoRotateSpeed = 0.6;
+
+// Event listeners
+yearSelect.addEventListener("change", e => {
+  currentYear = e.target.value;
+  updateGlobePoints();
+  log("Year: " + currentYear);
+});
+
+regionSelect.addEventListener("change", e => {
+  currentRegion = e.target.value;
+  updateGlobePoints();
+  log("Region: " + currentRegion);
+});
+
+document.getElementById("csv-upload").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadCSV(ev.target.result);
+  reader.readAsText(file);
+});
+
+// Default CSV load from repo
+fetch("data.csv")
+  .then(res => res.text())
+  .then(text => loadCSV(text));

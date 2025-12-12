@@ -1,13 +1,43 @@
-body {
-  scrollbar-width: thin;
+:root{
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.06);
 }
 
-#globe {
-  width: 100%;
-  height: 600px;
-  border-radius: 16px;
+/* glass card */
+.glass{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(6px) saturate(120%);
+  border-radius: 12px;
 }
 
-select {
-  color: white;
+/* neon focus */
+select:focus, input:focus, button:focus {
+  outline: none;
+  box-shadow: 0 0 18px rgba(99,102,241,0.12), inset 0 0 1px rgba(99,102,241,0.06);
+  border-color: rgba(99,102,241,0.6);
+}
+
+/* bar race item */
+.bar-item {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:6px 8px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* progress bar */
+.bar-fill {
+  height:12px;
+  border-radius:8px;
+  background:linear-gradient(90deg, #06b6d4, #8b5cf6);
+  transition: width 900ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* tiny responsive tweaks */
+@media (max-width: 1024px){
+  #globe{ height:480px; }
 }
